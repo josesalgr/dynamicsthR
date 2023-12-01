@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# dynamicsthR: Dynamic Conservation Action Planning with Mathematical Modeling
+# dynamicsthR: Dynamic Conservation Action Planning with Mathematical Programming
 
 ## Overview
 

@@ -1,0 +1,28 @@
+Unidades = Number of planning units
+
+Especies = Number of species/features
+
+Amenazas = Number of threats
+
+EspansionType = A matrix specifying the expansion type. The matrix contain threats as rows and three columns, the values indicate the propagation velocity. Column 1 = Radial Propagation, Column 2 = Downstream Propagation, and Column 3 = Upstream Propagation. Threats can propagate in more than one direction simultaneously.
+
+Dradial = A square matrix specifying Radial Distances (Euclidean distances between centroids).
+
+Ck = Cost per planning unit.
+
+Ij = 0-1 Matrix with species distribution. Rows represent the planning units, Columns represent the species.
+
+Ik = 0-level Matrix with threat distribution in the period 0. Rows represent the planning units, Columns represent the threats.
+
+Jk = 0-1 Matrix with Specie sensitivities. Rows represent the species, Columns represent the threats.
+
+Adyacency = Two-columns Matrix with id of the pair of adyacency planning units.
+ 
+Dlong = Three-columns matrix (long format) with the column id1, id2 and value. This "value" is the longitudinal distance between id1 and id2.
+
+
+
+
+
+
+
