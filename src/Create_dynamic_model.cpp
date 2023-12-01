@@ -34,12 +34,10 @@ List createModel_DynamicActions(int n_units,
                                 Rcpp::DataFrame Ck,
                                 int levels, 
                                 int periods, 
-                                int budget_per_period){
-  
-  std::cout<<"Reading data"<<std::endl;
-  
+                                double budget_per_period){
+
   std::map<int,std::map<int,bool>> matrix_JK;
-  
+
   // Get the number of rows and columns in the data frame
   int numRows = Jk.nrows();
   int numCols = Jk.size();
@@ -84,7 +82,7 @@ List createModel_DynamicActions(int n_units,
   }
   
   std::map<int,std::map<int,int>> matrix_spread;
-  
+
   // Get the number of rows and columns in the data frame
   numRows = ExpansionType.nrows();
   numCols = ExpansionType.size();
@@ -95,6 +93,7 @@ List createModel_DynamicActions(int n_units,
       // Get the value from the data frame
       Rcpp::NumericVector df = ExpansionType[j];
       matrix_spread[i][j] = df[i];
+      
     }
   }
   
@@ -103,13 +102,26 @@ List createModel_DynamicActions(int n_units,
   // Get the number of rows and columns in the data frame
   numRows = Dlong.nrows();
   numCols = Dlong.size();
+  int df_row;
+  int df_col;
+  double df_value;
   
   // Iterate through rows and columns of the data frame
-  for (int j = 0; j < numCols; ++j) {
-    for (int i = 0; i < numRows; ++i) {
+  for (int i = 0; i < numRows; ++i) {
+    for (int j = 0; j < numCols; ++j) {
       // Get the value from the data frame
       Rcpp::NumericVector df = Dlong[j];
-      matrix_Dlong[i][j] = df[i];
+      
+      if(j == 0){
+        df_row = df[i];
+      }
+      else if(j == 1){
+        df_col = df[i];
+      }
+      else{
+        df_value = df[i];
+      }
+      matrix_Dlong[df_row - 1][df_col -1] = df_value;
     }
   }
 
@@ -120,12 +132,24 @@ List createModel_DynamicActions(int n_units,
   numCols = Adyacency.size();
   
   // Iterate through rows and columns of the data frame
-  for (int j = 0; j < numCols; ++j) {
-    for (int i = 0; i < numRows; ++i) {
+  for (int i = 0; i < numRows; ++i) {
+    for (int j = 0; j < numCols; ++j) {
       // Get the value from the data frame
       Rcpp::IntegerVector df = Adyacency[j];
-      matrix_Adj[i][j] = df[i];
+      // 
+
+      if(j == 0){
+        df_row = df[i];
+      }
+      else{
+        df_col = df[i];
+      }
     }
+    matrix_Adj[df_row - 1][df_col - 1] = 1;
+    
+    // if(i == 0){
+    //   std::cout << "i: " << df_row-1 << " , j:" << df_col-1 << std::endl;
+    // }
   }
 
   std::map<int,std::map<int,double>> matrix_Dradial;
@@ -139,9 +163,10 @@ List createModel_DynamicActions(int n_units,
     for (int i = 0; i < numRows; ++i) {
       // Get the value from the data frame
       Rcpp::NumericVector df = Dradial[j];
-      //std::cout<<"i: "<< i << ", j: "<< j << ", value: " << df[i] <<std::endl;
-
+      
       matrix_Dradial[i][j] = df[i];
+      
+      //std::cout<<"i: "<< i << ", j: "<< j << ", value: " << matrix_Dradial[i][j] <<std::endl;
     }
   }
 
@@ -172,6 +197,8 @@ List createModel_DynamicActions(int n_units,
   std::vector<double> A_x;
   std::vector<double> rhs;
   int row_constraint = 0;
+  
+  std::cout<<"Data loaded"<<std::endl;
   
   //----------------------------------------------------------------------------
   //Variables definition--------------------------------------------------------
@@ -587,8 +614,14 @@ List createModel_DynamicActions(int n_units,
               
               for(int i_2=0; i_2<n_units; i_2++)
               {
+                if(matrix_Dradial[i][i_2] > 0){
+//std::cout << "j: " << j << ", speed: " << matrix_spread[k][j] << ", dist: " << matrix_Dradial[i][i_2] << std::endl;
+                }
+                             
                 if((matrix_spread[k][j]>=matrix_Dradial[i][i_2] && matrix_Dradial[i][i_2]>0) || (matrix_Adj[i][i_2]==1))
                 {
+                  //std::cout << "i: " << i << ", i2: " << i_2 << ", dist: " << matrix_Dradial[i][i_2] << std::endl;
+                  
                   Pcounter_units+=1;
                   
                   std::string name_v_i2_N1 = "v_" + std::to_string(i_2) + "_" + std::to_string(k) + "_" + std::to_string(t) + "_" + std::to_string(levels - 1);

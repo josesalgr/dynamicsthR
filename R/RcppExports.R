@@ -5,7 +5,3 @@ createModel_DynamicActions <- function(n_units, n_species, n_threats, Jk, Ij, Ik
     .Call(`_dynamicsthR_createModel_DynamicActions`, n_units, n_species, n_threats, Jk, Ij, Ik, ExpansionType, Dlong, Adyacency, Dradial, Ck, levels, periods, budget_per_period)
 }
 
-rcpp_hello_world <- function() {
-    .Call(`_dynamicsthR_rcpp_hello_world`)
-}
-

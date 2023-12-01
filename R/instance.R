@@ -1,21 +1,28 @@
-#' Do values in a numeric vector fall in specified range?
+#' Create an instance for simulation or from a file.
 #'
-#' This is a shortcut for `x >= left & x <= right`, implemented
-#' efficiently in C++ for local values, and translated to the
-#' appropriate SQL for remote tables.
+#' This function generates an instance for simulation or reads from a file to create an object with various components.
 #'
-#' @param x A numeric vector of values.
-#' @param left,right Boundary values.
+#' @param type A character specifying the type of instance. Use "simulation" for simulation data or "file" for reading from a file.
+#' @param file If type is "file", the path to the file containing the instance data.
+#' @param n An integer specifying the number of units.
+#' @param species An integer specifying the number of species.
+#' @param threats An integer specifying the number of threats.
+#' @param expansionType A matrix specifying the expansion type.
+#' @param threats_lloc A numeric vector specifying threat locations.
+#' @param dlong A matrix specifying distances.
+#' @param seed An integer specifying the seed for reproducibility.
+#'
+#' @return A list representing the instance with various components.
 #' @export
+#' @import dplyr, stringr
 #' @examples
-#' between(1:12, 7, 9)
-#'
-#' x <- rnorm(1e2)
+#' instance(type = "simulation", n = 10, species = 4, threats = 1)
+#' instance(type = "file", file = "path/to/instance_data.txt")
 #' x[between(x, -1, 1)]
-create_instance <- function(type = NULL, file = "", 
+instance <- function(type = NULL, file = "", 
                             n = 10L, 
                             species = 4, 
-                            threats = 2, 
+                            threats = 1, 
                             expansionType = NULL,
                             threats_lloc = NULL, 
                             dlong = NULL, 
@@ -29,17 +36,26 @@ create_instance <- function(type = NULL, file = "",
   
   instance <- list()
   
-  if(type == "square"){
+  if(type == "simulation"){
 
+    # Simulation specific code
+    
+    # Set seed for reproducibility
     set.seed(seed)
     phi <- 0.1
-    instance$Unidades <- n
+    instance$Unidades <- n*n
     instance$Especies <- species
     instance$Amenazas <- threats
     
     # ExpansionType
-    expType <- matrix(0, nrow = threats, ncol = 3)
-    expType[, 1] <- 1
+    if(is.null(expansionType)){
+      expType <- matrix(0, nrow = threats, ncol = 3)
+      expType[, 1] <- 1
+    }
+    else{
+      expType <- expansionType
+    }
+
     instance$ExpansionType <- tidyr::tibble(expType)
     
     # Define function to draw random samples from a multivariate normal
@@ -73,7 +89,7 @@ create_instance <- function(type = NULL, file = "",
     #                                     names_prefix = "V", 
     #                                     values_drop_na = TRUE)
     
-    instance$Dradial <- tidyr::tibble(distances_matrix)
+    instance$Dradial <- distances_matrix
     
     # Cost simulation
     X_sim <- rmvn(1, rep(0, n_total), exp(-phi * distances_matrix))
@@ -92,6 +108,7 @@ create_instance <- function(type = NULL, file = "",
       # Visualize results
       df_species <- cbind(df_species, X_sim_dic)
     }
+    df_species <- df_species[, -1]
     instance$Ij <- tidyr::tibble(df_species, .name_repair = "minimal")
     
     # Threat distribution model
@@ -104,10 +121,11 @@ create_instance <- function(type = NULL, file = "",
       }
     }
     else{
-      for(k in 1:threats){
-        df_threats <- cbind(df_threats, c(threats_lloc))
-      }
+      #for(k in 1:threats){
+      df_threats <- cbind(df_threats, c(threats_lloc))
+      #}
     }
+    df_threats <- df_threats[, -1]
     instance$Ik <- tidyr::tibble(df_threats, .name_repair = "minimal")
     
     # Sensitivity
@@ -149,7 +167,10 @@ create_instance <- function(type = NULL, file = "",
     
     instance$Dlong <- dlong
   }
-  else if(type == "specific"){
+  else if(type == "file"){
+    # File specific code
+    
+    # Read data from the specified file
     
     df <- read.table(file, sep = "\t")
     
@@ -215,11 +236,12 @@ create_instance <- function(type = NULL, file = "",
     distances_df <- tidyr::separate(distances_df, col = "distances", sep = " ", into = paste0("V", 1:3), convert = TRUE)
     instance$Dlong <- tidyr::tibble(distances_df)
     
-    
   }
   else{
+    # Invalid type provided
     stop("Invalid type.")
   }
   
+  # Return the created instance
   return(instance)
 }
