@@ -34,7 +34,8 @@ List createModel_DynamicActions(int n_units,
                                 Rcpp::DataFrame Ck,
                                 int levels, 
                                 int periods, 
-                                double budget_per_period){
+                                double budget_per_period, 
+                                int objective){
 
   std::map<int,std::map<int,bool>> matrix_JK;
 
@@ -242,7 +243,12 @@ List createModel_DynamicActions(int n_units,
           ub.push_back(1);
           
           if(n > 0 && t == periods-1){
-            obj.push_back(matrix_CK[i]);
+            if(objective == 1){
+              obj.push_back(matrix_CK[i]);
+            }
+            else{
+              obj.push_back(-0.0001*matrix_CK[i]);
+            }
           }
           else{
             obj.push_back(0); 
@@ -267,6 +273,20 @@ List createModel_DynamicActions(int n_units,
   }
   
   //Y_ist: Binary variable indicating if the species s exists in the unit i in the period t
+  Rcpp::NumericVector J_richness;
+  int sum_richness;
+  
+  for(int s=0;s<n_species;s++){
+    sum_richness = 0;
+    for (int i=0;i<n_units;i++)
+    {
+      if(matrix_IJ[i][s] > 0){
+        sum_richness += 1;
+      }
+    }
+    J_richness[s] = sum_richness; 
+  }
+  
   for (int i=0;i<n_units;i++)
   {
     for(int s=0;s<n_species;s++)
@@ -280,12 +300,18 @@ List createModel_DynamicActions(int n_units,
           lb.push_back(0);
           ub.push_back(1);
           
-          // if(t == periods-1){
-          //   obj.push_back(matrix_CK[i]/n_species);
-          // }
-          // else{
-          obj.push_back(0);
-          // }
+          if(t == periods-1){
+            if(objective == 2){
+              obj.push_back(1/J_richness[s]);
+            }
+            else{
+              obj.push_back(-0.0001*(1/J_richness[s]));
+            }
+
+          }
+          else{
+            obj.push_back(0);
+          }
         }
       }
     }
@@ -1019,14 +1045,8 @@ List createModel_DynamicActions(int n_units,
         
         for(int s=0; s<n_species; s++)
         {
-          std::string name_y = "y_" + std::to_string(i) + "_" + std::to_string(s) + "_" + std::to_string(t);
-          auto pos_y = find(n_variable.begin(), n_variable.end(), name_y) - n_variable.begin();
-          
           if(matrix_IJ[i][s]>0)
           {
-            A_i.push_back(row_constraint);
-            A_j.push_back(pos_y);
-            A_x.push_back(1);
             Psum_species+=1;
           }
         }
@@ -1050,6 +1070,19 @@ List createModel_DynamicActions(int n_units,
             
             rhs.push_back(Psum_species);
             sense.push_back("<=");
+            
+            for(int s=0; s<n_species; s++)
+            {
+              std::string name_y = "y_" + std::to_string(i) + "_" + std::to_string(s) + "_" + std::to_string(t);
+              auto pos_y = find(n_variable.begin(), n_variable.end(), name_y) - n_variable.begin();
+              
+              if(matrix_IJ[i][s]>0)
+              {
+                A_i.push_back(row_constraint);
+                A_j.push_back(pos_y);
+                A_x.push_back(1);
+              }
+            }
             row_constraint++;
           }
         }
@@ -1227,6 +1260,14 @@ List createModel_DynamicActions(int n_units,
   
   //FALTA AGREGAR TEMPORAL CONSTRAINT AQUI
   
+  std::string modelsense;
+  
+  if(objective == 1){
+    modelsense = "min";
+  }
+  else{
+    modelsense = "max";
+  }
   
   return List::create(Named("obj") = obj,
                       Named("n_variable") = n_variable,
@@ -1235,7 +1276,7 @@ List createModel_DynamicActions(int n_units,
                       Named("A_i") = A_i,
                       Named("A_j") = A_j,
                       Named("A_x") = A_x,
-                      Named("modelsense") = "min",
+                      Named("modelsense") = modelsense,
                       Named("lb") = lb,
                       Named("ub") = ub,
                       Named("vtype") = vtype);

@@ -11,8 +11,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // createModel_DynamicActions
-List createModel_DynamicActions(int n_units, int n_species, int n_threats, Rcpp::DataFrame Jk, Rcpp::DataFrame Ij, Rcpp::DataFrame Ik, Rcpp::DataFrame ExpansionType, Rcpp::DataFrame Dlong, Rcpp::DataFrame Adyacency, Rcpp::DataFrame Dradial, Rcpp::DataFrame Ck, int levels, int periods, double budget_per_period);
-RcppExport SEXP _dynamicsthR_createModel_DynamicActions(SEXP n_unitsSEXP, SEXP n_speciesSEXP, SEXP n_threatsSEXP, SEXP JkSEXP, SEXP IjSEXP, SEXP IkSEXP, SEXP ExpansionTypeSEXP, SEXP DlongSEXP, SEXP AdyacencySEXP, SEXP DradialSEXP, SEXP CkSEXP, SEXP levelsSEXP, SEXP periodsSEXP, SEXP budget_per_periodSEXP) {
+List createModel_DynamicActions(int n_units, int n_species, int n_threats, Rcpp::DataFrame Jk, Rcpp::DataFrame Ij, Rcpp::DataFrame Ik, Rcpp::DataFrame ExpansionType, Rcpp::DataFrame Dlong, Rcpp::DataFrame Adyacency, Rcpp::DataFrame Dradial, Rcpp::DataFrame Ck, int levels, int periods, double budget_per_period, int objective);
+RcppExport SEXP _dynamicsthR_createModel_DynamicActions(SEXP n_unitsSEXP, SEXP n_speciesSEXP, SEXP n_threatsSEXP, SEXP JkSEXP, SEXP IjSEXP, SEXP IkSEXP, SEXP ExpansionTypeSEXP, SEXP DlongSEXP, SEXP AdyacencySEXP, SEXP DradialSEXP, SEXP CkSEXP, SEXP levelsSEXP, SEXP periodsSEXP, SEXP budget_per_periodSEXP, SEXP objectiveSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -30,7 +30,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type levels(levelsSEXP);
     Rcpp::traits::input_parameter< int >::type periods(periodsSEXP);
     Rcpp::traits::input_parameter< double >::type budget_per_period(budget_per_periodSEXP);
-    rcpp_result_gen = Rcpp::wrap(createModel_DynamicActions(n_units, n_species, n_threats, Jk, Ij, Ik, ExpansionType, Dlong, Adyacency, Dradial, Ck, levels, periods, budget_per_period));
+    Rcpp::traits::input_parameter< int >::type objective(objectiveSEXP);
+    rcpp_result_gen = Rcpp::wrap(createModel_DynamicActions(n_units, n_species, n_threats, Jk, Ij, Ik, ExpansionType, Dlong, Adyacency, Dradial, Ck, levels, periods, budget_per_period, objective));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -38,7 +39,7 @@ END_RCPP
 RcppExport SEXP _rcpp_module_boot_yada();
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_dynamicsthR_createModel_DynamicActions", (DL_FUNC) &_dynamicsthR_createModel_DynamicActions, 14},
+    {"_dynamicsthR_createModel_DynamicActions", (DL_FUNC) &_dynamicsthR_createModel_DynamicActions, 15},
     {"_rcpp_module_boot_yada", (DL_FUNC) &_rcpp_module_boot_yada, 0},
     {NULL, NULL, 0}
 };
